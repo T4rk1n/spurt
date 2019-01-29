@@ -1,0 +1,12 @@
+<html.Div
+    (
+        <html.Button ("Click me") id="click">
+        <html.Div
+            # Generate callbacks that outputs directly on the prop
+            children=(click.n_clicks) => "Clicked " + click.n_clicks
+            id="output"
+        >
+    )
+    id="outer"
+    style={backgroundColor: "purple", }
+>
