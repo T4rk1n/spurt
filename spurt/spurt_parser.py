@@ -49,6 +49,7 @@ class ComponentTransformer(lark.Transformer):
         lib, name = lib_component
         module = _component_map.get(lib)
         component_cls = getattr(module, name)
+        children = []
 
         if len(children_props) == 2:
             # First are the children
@@ -57,14 +58,16 @@ class ComponentTransformer(lark.Transformer):
                 children = [children]
             props = children_props[1]
         else:
-            children = []
             props = children_props[0]
 
         if isinstance(props, tuple):
             # If there's only one prop it will be a tuple but we need dict.
             props = {props[0]: props[1]}
 
-        return component_cls(children, **props)
+        if children:
+            props['children'] = children
+
+        return component_cls(**props)
 
 
 def parser_factory(component_libraries=None):
