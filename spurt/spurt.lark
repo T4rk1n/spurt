@@ -1,0 +1,40 @@
+start: component*
+
+?key_value: NAME ":" value
+
+?value: INT | FLOAT
+    | ESCAPED_STRING -> escape_string
+    | "true"i -> true
+    | "false"i -> false
+    | ("null"i  | "none"i | "nil"i) -> null
+    |  "[" (value ","?)* "]"-> array
+    | "{" key_value* "}" -> obj
+
+?variable:  /\$[a-zA-Z0-9_]+/
+?var: value | variable
+
+?add: "+"
+?minus: "-"
+?mul: "*"
+?div: "/"
+
+?op: add | minus | mul | div
+?operation: (var op var)*
+
+?dotted_name: NAME "." NAME
+?callback: "("(dotted_name ","?)*")" "=>" (value | component | variable | operation)
+?prop: NAME "=" (value | callback)
+?props: prop*
+?children: (value | component ","?)*
+component: "<" dotted_name ("(" children ")")* props ">"
+
+COMMENT: /#.*/
+
+%import common.CNAME -> NAME
+%import common.INT
+%import common.FLOAT
+%import common.WS
+%import common.ESCAPED_STRING
+
+%ignore COMMENT
+%ignore WS
