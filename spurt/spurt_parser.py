@@ -42,7 +42,11 @@ class ComponentTransformer(lark.Transformer):
     def escape_string(self, value):
         return value.strip('"')
 
-    def component(self, lib, name, *children_props):
+    def dotted_name(self, prefix, name):
+        return str(prefix), str(name)
+
+    def component(self, lib_component, *children_props):
+        lib, name = lib_component
         module = _component_map.get(lib)
         component_cls = getattr(module, name)
 
@@ -57,7 +61,8 @@ class ComponentTransformer(lark.Transformer):
             props = children_props[0]
 
         if isinstance(props, tuple):
-            props = _obj(props)
+            # If there's only one prop it will be a tuple but we need dict.
+            props = {props[0]: props[1]}
 
         return component_cls(children, **props)
 

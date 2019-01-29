@@ -11,18 +11,18 @@ start: component*
     | "{" key_value* "}" -> obj
 
 ?variable:  /\$[a-zA-Z0-9_]+/
-?var: value | variable
+// ?var: value | variable
 
-?add: "+"
-?minus: "-"
-?mul: "*"
-?div: "/"
+// ?add: "+"
+// ?minus: "-"
+// ?mul: "*"
+// ?div: "/"
 
-?op: add | minus | mul | div
-?operation: (var op var)*
+// ?op: add | minus | mul | div
+// ?operation: (var op var)*
 
 ?dotted_name: NAME "." NAME
-?callback: "("(dotted_name ","?)*")" "=>" (value | component | variable | operation)
+?callback: "("(dotted_name ","?)*")" "=>" (value | component | variable)
 ?prop: NAME "=" (value | callback)
 ?props: prop*
 ?children: (value | component ","?)*
