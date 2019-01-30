@@ -1,16 +1,16 @@
 start: component*
 
-?key_value: NAME ":" value
+?key_value: NAME ":" var
 
 ?value: INT | FLOAT
     | ESCAPED_STRING -> escape_string
     | "true"i -> true
     | "false"i -> false
     | ("null"i  | "none"i | "nil"i) -> null
-    |  "[" (value ","?)* "]"-> array
+    |  "[" (var ","?)* "]"-> array
     | "{" key_value* "}" -> obj
 
-?variable:  /\$[a-zA-Z0-9_]+/
+?variable:  /\$[a-zA-Z0-9_]+/ -> variable
 ?var: value | variable
 
 // ?add: "+"
