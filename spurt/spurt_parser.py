@@ -3,12 +3,6 @@ import dash_core_components
 import dash_html_components
 
 
-_component_map = {
-    'html': dash_html_components,
-    'dcc': dash_core_components,
-}
-
-
 def _key_value(_, k, v):
     return str(k), v
 
@@ -51,7 +45,7 @@ class ComponentTransformer(lark.Transformer):
 
     def component(self, lib_component, *children_props):
         lib, name = lib_component
-        module = _component_map.get(lib)
+        module = self.component_libraries.get(lib)
         component_cls = getattr(module, name)
         children = []
 
