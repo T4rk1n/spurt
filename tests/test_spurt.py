@@ -9,9 +9,11 @@ def test_spurt_app(dash_threaded, selenium):
     s = '''
     <html.Div
         (
+            <html.H2 ("Spurt test")>
             <dcc.Input id="input">
             <html.Div
                 id="output"
+                # `@` for Input, the value is from callback argument
                 children=(@input.value) => @input.value
             >
         )
