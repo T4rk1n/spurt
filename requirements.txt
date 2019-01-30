@@ -3,4 +3,4 @@ dash
 dash-core-components
 dash-html-components
 pytest
-pytest-dash
+pytest-dash==2.0.0rc1
