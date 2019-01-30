@@ -82,6 +82,14 @@ class CallbackState(CallbackItem):
     _callback_class = State
 
 
+class CallbackBody:
+    def __init__(self):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        pass
+
+
 @lark.v_args(inline=True)
 class ComponentTransformer(lark.Transformer):
     key_value = _key_value
@@ -165,6 +173,19 @@ class ComponentTransformer(lark.Transformer):
 
     def callback_state(self, dotted_name):
         return CallbackState(*dotted_name)
+
+    def callback_body(self, *body):
+        return body
+
+    def operation(self, v1, op, v2):
+        if op.data == 'add':
+            return lambda: v1 + v2
+        if op.data == 'mul':
+            return lambda: v1 * v2
+        if op.data == 'div':
+            return lambda: v1 / v2
+        if op.data == 'sub':
+            return lambda: v1 - v2
 
 
 def parser_factory(component_libraries=None, variables=None, app=None):

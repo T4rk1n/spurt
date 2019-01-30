@@ -8,7 +8,7 @@ s = '''
         <html.Div
             id="output"
             # `@` for Input, the value is from callback argument
-            children=(@input.value) => @input.value
+            children=(@input.value) => "You said: " + @input.value
         >
     )
 >

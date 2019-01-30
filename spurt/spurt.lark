@@ -11,20 +11,21 @@ start: component*
     | "{" key_value* "}" -> obj
 
 ?variable:  /\$[a-zA-Z0-9_]+/ -> variable
-?var: value | variable
+?var: value | variable | callback_input | callback_state
 ?dotted_name: NAME "." NAME
 
-// ?add: "+"
-// ?minus: "-"
-// ?mul: "*"
-// ?div: "/"
+?add: "+"
+?sub: "-"
+?mul: "*"
+?div: "/"
 
-// ?op: add | minus | mul | div
-// ?operation: (var op var)*
+?op: add | sub | mul | div
+?operation: (var op var)*
 
 ?callback_input: "@" + dotted_name -> callback_input
 ?callback_state: "!" + dotted_name -> callback_state
-?callback: "("(callback_input ","?)* (callback_state ","?)*")" "=>" (component | var | callback_input | callback_state) -> callback
+?callback_body: (component | var | operation)
+?callback: "("(callback_input ","?)* (callback_state ","?)*")" "=>" callback_body -> callback
 ?prop: NAME "=" (var | callback)
 ?props: prop*
 ?children: (var | component ","?)*
