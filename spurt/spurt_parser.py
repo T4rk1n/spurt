@@ -1,7 +1,7 @@
 import lark
 import dash_core_components
 import dash_html_components
-from dash.dependencies import Output, Input
+from dash.dependencies import Output, Input, State
 
 
 def _key_value(_, k, v):
@@ -19,19 +19,67 @@ def _arr(_, *values):
 
 
 class Callback:
-    def __init__(self, inputs, output):
+    def __init__(self, inputs, output, states=None):
         self.inputs = inputs
+        if isinstance(self.inputs, CallbackInput):
+            self.inputs = [self.inputs]
+        self.states = states or []
+        if isinstance(self.states, CallbackState):
+            self.states = [self.states]
         self.output = output
         self.output_prop = None
 
     def __call__(self, *args):
         # TODO analyze args and map inputs to output
-        return self.output
+        output = self.output
+        # TODO make more dry
+        if isinstance(self.output, CallbackInput):
+            index = self.inputs.index(self.output)
+            output = args[index]
+        elif isinstance(self.output, CallbackState):
+            index = self.states.index(self.output)
+            output = args[len(self.inputs):][index]
+        return output
 
     def callback(self, app, output_id):
-        inputs = [Input(*x) for x in self.inputs] \
-            if isinstance(self.inputs, list) else [Input(*self.inputs)]
-        app.callback(Output(output_id, self.output_prop), inputs)(self)
+        inputs = [x.get_dash_instance() for x in self.inputs]
+        states = [x.get_dash_instance() for x in self.states]
+        app.callback(Output(output_id, self.output_prop), inputs, states)(self)
+
+
+class CallbackItem:
+    _callback_class = None
+
+    def __init__(self, component_id, component_prop):
+        self.component_id = component_id
+        self.component_prop = component_prop
+
+    def get_dash_instance(self):
+        return self._callback_class(self.component_id, self.component_prop)
+
+    def __eq__(self, other):
+        if not isinstance(other, CallbackItem):
+            return False
+        return (
+                self._callback_class == other._callback_class
+                and self.component_id == other.component_id
+                and self.component_prop == other.component_prop
+        )
+
+    def __hash__(self):
+        return hash((
+            self._callback_class,
+            self.component_id,
+            self.component_prop
+        ))
+
+
+class CallbackInput(CallbackItem):
+    _callback_class = Input
+
+
+class CallbackState(CallbackItem):
+    _callback_class = State
 
 
 @lark.v_args(inline=True)
@@ -100,13 +148,23 @@ class ComponentTransformer(lark.Transformer):
 
         return component_cls(**props)
 
-    def callback(self, inputs, output):
-        return Callback(inputs, output)
+    def callback(self, inputs, output, *args):
+        states = None
+        if args:
+            output = args[-1]
+            states = output
+        return Callback(inputs, output, states)
 
     def prop(self, key, value):
         if isinstance(value, Callback):
             value.output_prop = key
         return str(key), value
+
+    def callback_input(self, dotted_name):
+        return CallbackInput(*dotted_name)
+
+    def callback_state(self, dotted_name):
+        return CallbackState(*dotted_name)
 
 
 def parser_factory(component_libraries=None, variables=None, app=None):

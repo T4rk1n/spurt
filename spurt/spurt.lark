@@ -22,8 +22,8 @@ start: component*
 // ?op: add | minus | mul | div
 // ?operation: (var op var)*
 
-?callback_input: "@" + dotted_name
-?callback_state: "!" + dotted_name
+?callback_input: "@" + dotted_name -> callback_input
+?callback_state: "!" + dotted_name -> callback_state
 ?callback: "("(callback_input ","?)* (callback_state ","?)*")" "=>" (component | var | callback_input | callback_state) -> callback
 ?prop: NAME "=" (var | callback)
 ?props: prop*
