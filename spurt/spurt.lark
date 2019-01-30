@@ -11,7 +11,7 @@ start: component*
     | "{" key_value* "}" -> obj
 
 ?variable:  /\$[a-zA-Z0-9_]+/
-// ?var: value | variable
+?var: value | variable
 
 // ?add: "+"
 // ?minus: "-"
@@ -22,10 +22,10 @@ start: component*
 // ?operation: (var op var)*
 
 ?dotted_name: NAME "." NAME
-?callback: "("(dotted_name ","?)*")" "=>" (value | component | variable)
-?prop: NAME "=" (value | callback)
+?callback: "("(dotted_name ","?)*")" "=>" (component | var)
+?prop: NAME "=" (var | callback)
 ?props: prop*
-?children: (value | component ","?)*
+?children: (var | component ","?)*
 component: "<" dotted_name ("(" children ")")* props ">"
 
 COMMENT: /#.*/

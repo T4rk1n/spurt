@@ -32,12 +32,16 @@ class ComponentTransformer(lark.Transformer):
     array = _arr
     children = _arr
 
-    def __init__(self, component_libraries=None):
+    def __init__(self, component_libraries=None, variables=None):
         self.component_libraries = {
             'html': dash_html_components,
             'dcc': dash_core_components,
         }
         self.component_libraries.update(component_libraries or {})
+        self.variables = variables or {}
+
+    def variable(self, key):
+        return self.variables.get(str(key).lstrip('$'))
 
     def escape_string(self, value):
         return value.strip('"')
@@ -70,11 +74,11 @@ class ComponentTransformer(lark.Transformer):
         return component_cls(**props)
 
 
-def parser_factory(component_libraries=None):
+def parser_factory(component_libraries=None, variables=None):
     return lark.Lark.open(
         'spurt.lark',
         rel_to=__file__,
         parser='lalr',
-        transformer=ComponentTransformer(component_libraries)
+        transformer=ComponentTransformer(component_libraries, variables)
     )
 
