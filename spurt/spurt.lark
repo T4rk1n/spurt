@@ -12,6 +12,7 @@ start: component*
 
 ?variable:  /\$[a-zA-Z0-9_]+/ -> variable
 ?var: value | variable
+?dotted_name: NAME "." NAME
 
 // ?add: "+"
 // ?minus: "-"
@@ -21,8 +22,9 @@ start: component*
 // ?op: add | minus | mul | div
 // ?operation: (var op var)*
 
-?dotted_name: NAME "." NAME
-?callback: "("(dotted_name ","?)*")" "=>" (component | var)
+?callback_input: "@" + dotted_name
+?callback_state: "!" + dotted_name
+?callback: "("(callback_input ","?)* (callback_state ","?)*")" "=>" (component | var | callback_input | callback_state) -> callback
 ?prop: NAME "=" (var | callback)
 ?props: prop*
 ?children: (var | component ","?)*

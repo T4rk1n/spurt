@@ -10,5 +10,5 @@ class Spurt:
                  component_libraries=None,
                  variables=None,):
         self.app = dash.Dash(name)
-        self.parser = parser_factory(component_libraries, variables)
+        self.parser = parser_factory(component_libraries, variables, self.app)
         self.app.layout = self.parser.parse(spurt).children[0]

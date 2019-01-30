@@ -1,6 +1,7 @@
 import lark
 import dash_core_components
 import dash_html_components
+from dash.dependencies import Output, Input
 
 
 def _key_value(_, k, v):
@@ -17,22 +18,38 @@ def _arr(_, *values):
     return list(values)
 
 
+class Callback:
+    def __init__(self, inputs, output):
+        self.inputs = inputs
+        self.output = output
+        self.output_prop = None
+
+    def __call__(self, *args):
+        # TODO analyze args and map inputs to output
+        return self.output
+
+    def callback(self, app, output_id):
+        inputs = [Input(*x) for x in self.inputs] \
+            if isinstance(self.inputs, list) else [Input(*self.inputs)]
+        app.callback(Output(output_id, self.output_prop), inputs)(self)
+
+
 @lark.v_args(inline=True)
 class ComponentTransformer(lark.Transformer):
     key_value = _key_value
-    prop = _key_value
     obj = _obj
     props = _obj
     array = _arr
     children = _arr
 
-    def __init__(self, component_libraries=None, variables=None):
+    def __init__(self, component_libraries=None, variables=None, app=None):
         self.component_libraries = {
             'html': dash_html_components,
             'dcc': dash_core_components,
         }
         self.component_libraries.update(component_libraries or {})
         self.variables = variables or {}
+        self.app = app
 
     def variable(self, key):
         return self.variables.get(str(key).lstrip('$'))
@@ -65,14 +82,40 @@ class ComponentTransformer(lark.Transformer):
         if children:
             props['children'] = children
 
+        _callbacks = []
+        component_id = props.get('id')
+        for k, v in props.items():
+            if isinstance(v, Callback):
+
+                _callbacks.append((k, v))
+
+        for k, _ in _callbacks:
+            del props[k]
+
+        if self.app:
+            @self.app.server.before_first_request
+            def apply_callbacks():
+                for _, callback in _callbacks:
+                    callback.callback(self.app, component_id)
+
         return component_cls(**props)
 
+    def callback(self, inputs, output):
+        return Callback(inputs, output)
 
-def parser_factory(component_libraries=None, variables=None):
+    def prop(self, key, value):
+        if isinstance(value, Callback):
+            value.output_prop = key
+        return str(key), value
+
+
+def parser_factory(component_libraries=None, variables=None, app=None):
     return lark.Lark.open(
         'spurt.lark',
         rel_to=__file__,
         parser='lalr',
-        transformer=ComponentTransformer(component_libraries, variables)
+        transformer=ComponentTransformer(
+            component_libraries, variables, app
+        )
     )
 
